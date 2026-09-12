@@ -18,6 +18,6 @@
       "@/*": ["plugins/*"]
     }
   },
-  "include": ["plugins/**/*.ts", "plugins/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

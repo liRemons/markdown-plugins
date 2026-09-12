@@ -1,5 +1,5 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, Root } from 'react-dom/client';
 import markdownItContainer from 'markdown-it-container';
 import JSON5 from 'json5';
 
@@ -120,8 +120,16 @@ export function createContainerPlugin(
 export function createContainerComponent(tagName: string) {
   return (Component: React.FC<any>): (md: any) => void => {
     const placeholderAttr = `data-${tagName}-placeholder`;
+    // 通过内容哈希缓存已渲染的根节点，避免重复渲染相同组件
+    // 键：内容哈希（由 props 生成），值：{ root, el }
+    const contentCache = new Map<string, { root: Root; el: HTMLElement }>();
+    // 跟踪已挂载的元素
+    const mountedElements = new WeakSet<HTMLElement>();
 
     const mount = (el: HTMLElement) => {
+      // 如果已挂载则跳过，避免重复创建 React 根节点
+      if (mountedElements.has(el)) return;
+
       const props: Record<string, string> = {};
       for (const attr of el.attributes) {
         if (attr.name.startsWith('data-') && !attr.name.endsWith('-placeholder')) {
@@ -134,8 +142,23 @@ export function createContainerComponent(tagName: string) {
           props.content = textContent;
         }
       }
+
+      // 从 props 生成内容哈希，用于标识相同组件
+      const contentHash = JSON.stringify(props);
+
+      // 如果已存在 props 相同的组件，则复用其 DOM 元素
+      const cached = contentCache.get(contentHash);
+      if (cached && cached.el && cached.el.parentElement) {
+        // 用已渲染的元素替换新的占位符
+        el.replaceWith(cached.el);
+        return;
+      }
+
       el.removeAttribute(placeholderAttr);
-      createRoot(el).render(React.createElement(Component, props));
+      mountedElements.add(el);
+      const root = createRoot(el);
+      contentCache.set(contentHash, { root, el });
+      root.render(React.createElement(Component, props));
     };
 
     // Auto-mount: 通过 MutationObserver 监听 DOM 中新增的占位符并自动挂载

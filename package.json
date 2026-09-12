@@ -1,8 +1,12 @@
 {
   "name": "remons-markdown-plugins",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "Markdown-it container plugins with React components",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liRemons/markdown-plugins"
+  },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -75,6 +79,7 @@
         "default": "./dist/plugins/render-amap.cjs"
       }
     },
+    "./plugins/render-amap/style.css": "./dist/plugins/render-amap.css",
     "./plugins/render-badge": {
       "import": {
         "types": "./dist/plugins/render-badge.d.ts",
@@ -85,6 +90,7 @@
         "default": "./dist/plugins/render-badge.cjs"
       }
     },
+    "./plugins/render-badge/style.css": "./dist/plugins/render-badge.css",
     "./plugins/render-link-preview-card": {
       "import": {
         "types": "./dist/plugins/render-link-preview-card.d.ts",
@@ -95,6 +101,7 @@
         "default": "./dist/plugins/render-link-preview-card.cjs"
       }
     },
+    "./plugins/render-link-preview-card/style.css": "./dist/plugins/render-link-preview-card.css",
     "./plugins/render-share-code": {
       "import": {
         "types": "./dist/plugins/render-share-code.d.ts",
@@ -104,6 +111,7 @@
         "types": "./dist/plugins/render-share-code.d.cts",
         "default": "./dist/plugins/render-share-code.cjs"
       }
-    }
+    },
+    "./plugins/render-share-code/style.css": "./dist/plugins/render-share-code.css"
   }
 }

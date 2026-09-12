@@ -26,6 +26,8 @@ if (fs.existsSync(pluginsDir)) {
         "import": { "types": `./dist/plugins/${name}.d.ts`, "default": `./dist/plugins/${name}.js` },
         "require": { "types": `./dist/plugins/${name}.d.cts`, "default": `./dist/plugins/${name}.cjs` }
       };
+      // 为每个插件添加独立的 CSS 导出
+      newExports[`./plugins/${name}/style.css`] = `./dist/plugins/${name}.css`;
     }
   }
 }
