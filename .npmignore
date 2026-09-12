@@ -1,0 +1,14 @@
+node_modules
+src
+utils
+*.ts
+*.mts
+*.js
+*.mjs
+tsconfig.json
+rollup.config.js
+tsup.config.ts
+.DS_Store
+*.swp
+*.swo
+*~
