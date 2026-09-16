@@ -27,7 +27,7 @@ const ogpCache = new Map<string, OgpData>();
 // Track in-flight requests to avoid duplicate fetches
 const requestCache = new Map<string, Promise<OgpData | null>>();
 
-function fetchOgp(finalUrl: string): Promise<OgpData | null> {
+function fetchOgp(finalUrl: string, fetchOgpUrl: string): Promise<OgpData | null> {
   if (ogpCache.has(finalUrl)) {
     return Promise.resolve(ogpCache.get(finalUrl));
   }
@@ -35,7 +35,7 @@ function fetchOgp(finalUrl: string): Promise<OgpData | null> {
     return requestCache.get(finalUrl)!;
   }
 
-  const promise = fetch(`${HOST}/ogp/fetch?url=${encodeURIComponent(finalUrl)}`)
+  const promise = fetch(`${HOST}/ogp/fetch?url=${encodeURIComponent(fetchOgpUrl)}`)
     .then(res => res.json())
     .then(res => {
       if (res.success && res.data) {
@@ -53,6 +53,10 @@ function fetchOgp(finalUrl: string): Promise<OgpData | null> {
   return promise;
 }
 
+/** 是否运行在 HTML5+ App 环境（模拟器 / 真机 / file:// 协议） */
+export const isApp = () =>
+  typeof window.plus !== 'undefined' || window.location.protocol === 'file:';
+
 export function useOgp(url: string): UseOgpResult {
   const [ogpData, setOgpData] = useState<OgpData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +69,19 @@ export function useOgp(url: string): UseOgpResult {
   const finalUrl = hasProtocol
     ? trimmed
     : `${window.location.origin}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
+
+  let fetchOgpUrl = ''
+  if (hasProtocol) {
+    fetchOgpUrl = finalUrl;
+  }
+
+  if (!hasProtocol) {
+    if (isApp()) {
+      fetchOgpUrl = `https://remons.cn${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
+    } else {
+      fetchOgpUrl = `${window.location.origin}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
+    }
+  }
 
   useEffect(() => {
     mountedRef.current = true;
@@ -83,7 +100,7 @@ export function useOgp(url: string): UseOgpResult {
     }
 
     setLoading(true);
-    fetchOgp(finalUrl).then(data => {
+    fetchOgp(finalUrl, fetchOgpUrl).then(data => {
       if (mountedRef.current) {
         if (data) {
           setOgpData(data);
