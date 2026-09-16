@@ -3,7 +3,7 @@ import { createFromIconfontCN } from '@ant-design/icons';
 import { img } from './index';
 
 const Icon = createFromIconfontCN({
-  scriptUrl: '//at.alicdn.com/t/c/font_5232281_7vl1k3wskmb.js',
+  scriptUrl: 'https://at.alicdn.com/t/c/font_5232281_7vl1k3wskmb.js',
 });
 
 export const typeToIcon = (type: string): any => {
