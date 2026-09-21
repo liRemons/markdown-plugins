@@ -29,7 +29,7 @@ const requestCache = new Map<string, Promise<OgpData | null>>();
 
 function fetchOgp(finalUrl: string, fetchOgpUrl: string): Promise<OgpData | null> {
   if (ogpCache.has(finalUrl)) {
-    return Promise.resolve(ogpCache.get(finalUrl));
+    return Promise.resolve(ogpCache.get(finalUrl) || null);
   }
   if (requestCache.has(finalUrl)) {
     return requestCache.get(finalUrl)!;
@@ -54,8 +54,8 @@ function fetchOgp(finalUrl: string, fetchOgpUrl: string): Promise<OgpData | null
 }
 
 /** 是否运行在 HTML5+ App 环境（模拟器 / 真机 / file:// 协议） */
-export const isApp = () =>
-  typeof window.plus !== 'undefined' || window.location.protocol === 'file:';
+export const isWebsite = () =>
+  ['remons.cn', 'lucky.work'].includes(window.location.hostname);
 
 export function useOgp(url: string): UseOgpResult {
   const [ogpData, setOgpData] = useState<OgpData | null>(null);
@@ -76,10 +76,10 @@ export function useOgp(url: string): UseOgpResult {
   }
 
   if (!hasProtocol) {
-    if (isApp()) {
-      fetchOgpUrl = `https://remons.cn${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
-    } else {
+    if (isWebsite()) {
       fetchOgpUrl = `${window.location.origin}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
+    } else {
+      fetchOgpUrl = `https://remons.cn${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
     }
   }
 
@@ -94,7 +94,7 @@ export function useOgp(url: string): UseOgpResult {
 
     // Check cache first
     if (ogpCache.has(finalUrl)) {
-      setOgpData(ogpCache.get(finalUrl));
+      setOgpData(ogpCache.get(finalUrl) || null);
       setLoading(false);
       return;
     }
