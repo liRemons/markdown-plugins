@@ -4,10 +4,11 @@ import renderAmap from './plugins/render-amap';
 import renderBadge from './plugins/render-badge';
 import renderShareCode from './plugins/render-share-code';
 import renderLinkCard from './plugins/render-link-preview-card';
+import renderCalendar from './plugins/render-calendar';
 
 // 插件 - markdown-it container 插件
 // 支持 tree-shake: 每个插件都是独立导出，未使用的插件会被消除
-export { renderAmap, renderBadge, renderShareCode, renderLinkCard };
+export { renderAmap, renderBadge, renderShareCode, renderLinkCard, renderCalendar };
 
 export const excludedSelectors = ['.badge-container', '.link-preview-card-container']
 
@@ -18,4 +19,5 @@ export function registerAll(md: any): void {
   renderBadge(md);
   renderShareCode(md);
   renderLinkCard(md);
+  renderCalendar(md);
 }

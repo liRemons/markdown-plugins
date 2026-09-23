@@ -1,6 +1,6 @@
 {
   "name": "remons-markdown-plugins",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.0-beta.8",
   "description": "Markdown-it container plugins with React components",
   "type": "module",
   "repository": {
@@ -27,33 +27,34 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "json5": "^2.2.3",
-    "methods-r": "^1.0.0",
     "classnames": "^2.5.1",
-    "markdown-it-container": "^4.0.0"
+    "json5": "^2.2.3",
+    "markdown-it-container": "^4.0.0",
+    "methods-r": "^1.0.0",
+    "remons-calendar": "^1.0.0-beta.3"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0",
+    "@ant-design/icons": ">=5.0.0",
     "antd": ">=5.0.0",
-    "@ant-design/icons": ">=5.0.0"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
+    "@ant-design/icons": "^5.3.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-typescript": "^12.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "typescript": "^5.3.0",
-    "rollup": "^4.9.0",
-    "@rollup/plugin-node-resolve": "^15.2.0",
-    "tsup": "^8.0.0",
-    "@rollup/plugin-typescript": "^12.0.0",
-    "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-dts": "^6.1.0",
-    "less": "^4.2.0",
-    "@ant-design/icons": "^5.3.0",
     "antd": "^5.12.0",
+    "less": "^4.2.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "rollup": "^4.9.0",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
   },
   "license": "MIT",
   "exports": {
@@ -90,6 +91,17 @@
       }
     },
     "./plugins/render-badge/style.css": "./dist/plugins/render-badge.css",
+    "./plugins/render-calendar": {
+      "import": {
+        "types": "./dist/plugins/render-calendar.d.ts",
+        "default": "./dist/plugins/render-calendar.js"
+      },
+      "require": {
+        "types": "./dist/plugins/render-calendar.d.cts",
+        "default": "./dist/plugins/render-calendar.cjs"
+      }
+    },
+    "./plugins/render-calendar/style.css": "./dist/plugins/render-calendar.css",
     "./plugins/render-link-preview-card": {
       "import": {
         "types": "./dist/plugins/render-link-preview-card.d.ts",

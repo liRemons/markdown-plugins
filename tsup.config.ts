@@ -29,7 +29,7 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['react', 'react-dom', 'antd', '@ant-design/icons', 'markdown-it-container'],
+  external: ['react', 'react-dom', 'antd', '@ant-design/icons', 'markdown-it-container', 'remons-calendar'],
   bundle: true,
   noExternal: [],
   css: true,

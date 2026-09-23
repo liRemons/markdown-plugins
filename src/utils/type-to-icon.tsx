@@ -3,7 +3,7 @@ import { createFromIconfontCN } from '@ant-design/icons';
 import { img } from './index';
 
 const Icon = createFromIconfontCN({
-  scriptUrl: 'https://at.alicdn.com/t/c/font_5232281_7vl1k3wskmb.js',
+  scriptUrl: 'https://at.alicdn.com/t/c/font_5232281_g68qrbd1z2.js',
 });
 
 export const typeToIcon = (type: string): any => {
@@ -25,6 +25,9 @@ export const typeToIcon = (type: string): any => {
     'highlightAttraction': <Icon className="markdown-icon" type="icon-highlightattraction" />,
     'travelMethod': <Icon className="markdown-icon" type="icon-travelmethod" />,
     'website': <Icon className="markdown-icon" type="icon-website" />,
+    'itinerary': <Icon className="markdown-icon" type="icon-itinerary" />,
+    'calendar': <Icon className="markdown-icon" type="icon-calendar" />,
+    'hotel': <Icon className="markdown-icon" type="icon-hotel" />,
   }
 
   const result = iconMap[type];
