@@ -1,5 +1,6 @@
 import React, { Fragment, useState, useMemo, useCallback } from 'react';
 import { Spin } from 'antd';
+import { RedoOutlined } from '@ant-design/icons';
 import { IsPC } from '../../utils/platform';
 import { useOgp } from './useOgp';
 import LinkButton from '../link-button';
@@ -16,7 +17,7 @@ interface LinkPreviewCardLayoutProps {
 }
 
 const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url, description, favicon, actions }) => {
-  const { ogpData, loading, finalUrl, imageError, setImageError } = useOgp(url);
+  const { ogpData, loading, finalUrl, imageError, setImageError, refetch } = useOgp(url);
   const [faviconError, setFaviconError] = useState(false);
 
   const handleImageError = useCallback(() => {
@@ -26,6 +27,13 @@ const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url,
   const handleFaviconError = useCallback(() => {
     setFaviconError(true);
   }, []);
+
+  const onReload = useCallback(() => {
+    // 刷新ogp（向后端携带 noCache=true，不使用缓存）
+    setFaviconError(false);
+    refetch();
+  }, [refetch]);
+
 
   const displayInfo = useMemo(() => {
     const displayTitle = ogpData?.title || `链接 ${new URL(finalUrl).hostname}`;
@@ -97,6 +105,7 @@ const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url,
   return (
     <div className="link-preview-card-container">
       <div className="link-preview-card">
+        <div className="refresh-btn cricle" onClick={onReload}><RedoOutlined /></div>
         {imageComponent}
         {
           IsPC() ? rightComponent : <div className="link-preview-right">

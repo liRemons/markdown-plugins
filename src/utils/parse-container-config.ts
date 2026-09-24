@@ -34,11 +34,13 @@ export function parseContainerConfig(tokenInfo: string, tagName: string): Record
  * @param md markdown-it 实例
  * @param tagName 容器标签名
  * @param renderOpen 渲染开始标签的回调，接收 (config, md)，返回 HTML 字符串
+ * @param renderClose 渲染结束标签的回调，返回 HTML 字符串，默认 `'</div>'`
  */
 export function createContainerPlugin(
   md: any,
   tagName: string,
   renderOpen: (config: Record<string, string>, md: any, isBlock?: boolean) => string,
+  renderClose: () => string = () => '</div>',
 ) {
   // 添加 inline rule 处理单行完整容器 :::tagName{...}:::
   md.inline.ruler.before('escape', `${tagName}_inline`, (state: any, silent: boolean) => {
@@ -104,7 +106,7 @@ export function createContainerPlugin(
         }
         return renderOpen(config, md, true);
       } else {
-        return '</div>';
+        return renderClose();
       }
     },
   });
@@ -188,16 +190,25 @@ export function createContainerComponent(tagName: string) {
     }
 
     return (md: any) => {
-      createContainerPlugin(md, tagName, (config, md, isBlock) => {
-        const dataAttrs = Object.entries(config)
-          .map(([key, val]) => `data-${key}="${md.utils.escapeHtml(val || '')}"`)
-          .join(' ');
-        const className = `render-md-plugin-${tagName}-container ${config.class || ''}`;
-        if (isBlock) {
-          return `<div class="${className}" ${placeholderAttr} ${dataAttrs}>`;
-        }
-        return `<span class="${className}" ${placeholderAttr} ${dataAttrs}></span>`;
-      });
+      createContainerPlugin(
+        md,
+        tagName,
+        (config, md, isBlock) => {
+          const dataAttrs = Object.entries(config)
+            .map(([key, val]) => `data-${key}="${md.utils.escapeHtml(val || '')}"`)
+            .join(' ');
+          const className = `render-md-plugin-${tagName}-container ${config.class || ''}`;
+          if (isBlock) {
+            // 块级容器将内部原始内容包进隐藏元素：MutationObserver 挂载 React 前，
+            // 块内的原始配置文本不可见，避免「原始内容 -> 组件」的闪动；
+            // mount() 中 el.textContent 兜底读取仍有效，createRoot 首次渲染会清掉容器内旧内容
+            return `<div class="${className}" ${placeholderAttr} ${dataAttrs}><div class="render-md-plugin-raw" style="display:none">`;
+          }
+          return `<span class="${className}" ${placeholderAttr} ${dataAttrs}></span>`;
+        },
+        // 块级开始标签含一个隐藏的 render-md-plugin-raw 包装 div，结束需两层闭合
+        () => '</div></div>',
+      );
     };
   };
 }

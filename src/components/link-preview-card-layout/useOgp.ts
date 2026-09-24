@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { hasProtocolFun, HOST } from '../../utils';
 
 export interface OgpData {
@@ -20,6 +20,7 @@ interface UseOgpResult {
   setImageError: (v: boolean) => void;
   finalUrl: string;
   hasProtocol: boolean;
+  refetch: () => void;
 }
 
 // Global cache for OGP data to avoid duplicate requests
@@ -27,15 +28,16 @@ const ogpCache = new Map<string, OgpData>();
 // Track in-flight requests to avoid duplicate fetches
 const requestCache = new Map<string, Promise<OgpData | null>>();
 
-function fetchOgp(finalUrl: string, fetchOgpUrl: string): Promise<OgpData | null> {
-  if (ogpCache.has(finalUrl)) {
+function fetchOgp(finalUrl: string, fetchOgpUrl: string, noCache?: boolean): Promise<OgpData | null> {
+  if (!noCache && ogpCache.has(finalUrl)) {
     return Promise.resolve(ogpCache.get(finalUrl) || null);
   }
   if (requestCache.has(finalUrl)) {
     return requestCache.get(finalUrl)!;
   }
 
-  const promise = fetch(`${HOST}/ogp/fetch?url=${encodeURIComponent(fetchOgpUrl)}`)
+  const cacheParam = noCache ? '&noCache=true' : '';
+  const promise = fetch(`${HOST}/ogp/fetch?url=${encodeURIComponent(fetchOgpUrl)}${cacheParam}`)
     .then(res => res.json())
     .then(res => {
       if (res.success && res.data) {
@@ -83,6 +85,25 @@ export function useOgp(url: string): UseOgpResult {
     }
   }
 
+  const refetch = useCallback(() => {
+    if (!trimmed) return;
+    // 刷新：清除本地缓存，并向后端携带 noCache=true 不使用缓存
+    ogpCache.delete(finalUrl);
+    setError(false);
+    setImageError(false);
+    setLoading(true);
+    fetchOgp(finalUrl, fetchOgpUrl, true).then(data => {
+      if (mountedRef.current) {
+        if (data) {
+          setOgpData(data);
+        } else {
+          setError(true);
+        }
+        setLoading(false);
+      }
+    });
+  }, [finalUrl, fetchOgpUrl, trimmed]);
+
   useEffect(() => {
     mountedRef.current = true;
     if (!trimmed) {
@@ -116,5 +137,5 @@ export function useOgp(url: string): UseOgpResult {
     };
   }, [finalUrl]);
 
-  return { ogpData, loading, error, imageError, setImageError, finalUrl, hasProtocol };
+  return { ogpData, loading, error, imageError, setImageError, finalUrl, hasProtocol, refetch };
 }
