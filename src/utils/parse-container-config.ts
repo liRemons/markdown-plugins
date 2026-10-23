@@ -119,18 +119,39 @@ export function createContainerPlugin(
  * @param Component React 组件，接收 config 中各字段作为 props
  * @returns render(md) 注册插件，自动通过 MutationObserver 挂载组件
  */
+/** 与 remons-render-markdown 约定的持久节点标记：增量 patch 时不丢弃该节点 */
+const MD_PERSIST_ATTR = 'data-md-persist';
+/** mount 时记录原始 className，供增量渲染按稳定 key 匹配（组件渲染后 class 可能被追加） */
+const MD_KEY_ATTR = 'data-md-key';
+
 export function createContainerComponent(tagName: string) {
   return (Component: React.FC<any>): (md: any) => void => {
     const placeholderAttr = `data-${tagName}-placeholder`;
-    // 通过内容哈希缓存已渲染的根节点，避免重复渲染相同组件
-    // 键：内容哈希（由 props 生成），值：{ root, el }
-    const contentCache = new Map<string, { root: Root; el: HTMLElement }>();
-    // 跟踪已挂载的元素
+    // 跟踪已挂载的元素，避免重复创建 React 根节点
     const mountedElements = new WeakSet<HTMLElement>();
+    // 挂载后的 React Root，用于节点真正从 DOM 移除时卸载，避免内存泄漏
+    const elementRoots = new WeakMap<HTMLElement, Root>();
+
+    const unmountDetached = (el: HTMLElement) => {
+      // 增量渲染会先摘除再恢复持久节点，恢复后 isConnected 为 true，不能卸载
+      if (el.isConnected) return;
+      const root = elementRoots.get(el);
+      if (!root) return;
+      root.unmount();
+      elementRoots.delete(el);
+    };
+
+    const cleanupRemovedTree = (node: Node) => {
+      if (!(node instanceof HTMLElement)) return;
+      if (node.hasAttribute(MD_PERSIST_ATTR)) unmountDetached(node);
+      node.querySelectorAll<HTMLElement>(`[${MD_PERSIST_ATTR}]`).forEach(unmountDetached);
+    };
 
     const mount = (el: HTMLElement) => {
       // 如果已挂载则跳过，避免重复创建 React 根节点
       if (mountedElements.has(el)) return;
+      // 增量渲染 patch 期间被替换掉的孤立占位符不再挂载
+      if (!el.isConnected) return;
 
       const props: Record<string, string> = {};
       for (const attr of el.attributes) {
@@ -145,21 +166,14 @@ export function createContainerComponent(tagName: string) {
         }
       }
 
-      // 从 props 生成内容哈希，用于标识相同组件
-      const contentHash = JSON.stringify(props);
-
-      // 如果已存在 props 相同的组件，则复用其 DOM 元素
-      const cached = contentCache.get(contentHash);
-      if (cached && cached.el && cached.el.parentElement) {
-        // 用已渲染的元素替换新的占位符
-        el.replaceWith(cached.el);
-        return;
-      }
-
+      // mount 前记录原始 class，增量渲染恢复时按它匹配（组件渲染后可能追加自己的 class）
+      el.setAttribute(MD_KEY_ATTR, Array.from(el.classList).join(' '));
+      // 标记为持久节点：增量 patch 时先摘除、patch 后按配置恢复，避免被占位符清空
+      el.setAttribute(MD_PERSIST_ATTR, '');
       el.removeAttribute(placeholderAttr);
       mountedElements.add(el);
       const root = createRoot(el);
-      contentCache.set(contentHash, { root, el });
+      elementRoots.set(el, root);
       root.render(React.createElement(Component, props));
     };
 
@@ -176,6 +190,10 @@ export function createContainerComponent(tagName: string) {
                 if (node.matches(`[${placeholderAttr}]`)) mount(node);
                 node.querySelectorAll<HTMLElement>(`[${placeholderAttr}]`).forEach(mount);
               }
+            }
+            // 节点被真正移除（而非增量渲染的摘除-恢复）时卸载 React Root
+            for (const node of mutation.removedNodes) {
+              cleanupRemovedTree(node);
             }
           }
         });
