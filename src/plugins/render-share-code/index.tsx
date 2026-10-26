@@ -4,9 +4,9 @@ import LinkPreviewCardLayout from '../../components/link-preview-card-layout';
 import { typeToIcon } from '../../utils/type-to-icon';
 import LinkButton from '../../components/link-button';
 
-const ShareCodeContainerInner: React.FC<{ content: string; type: string }> = ({ content, type }) => {
+const ShareCodeContainerInner: React.FC<{ content?: string; type?: string }> = ({ content = '', type }) => {
   const url = content.match(/https?:\/\/[^\s<>"']+/)?.[0] || '';
-  const icon = typeToIcon(type) || typeToIcon('sharecode')
+  const icon = typeToIcon(type || '') || typeToIcon('sharecode');
 
   const actionsWithUrl = useMemo(() => {
     if (!url) return null;

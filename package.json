@@ -1,6 +1,6 @@
 {
   "name": "remons-markdown-plugins",
-  "version": "1.0.0-beta.14",
+  "version": "2.0.0-beta.0",
   "description": "Markdown-it container plugins with React components",
   "type": "module",
   "repository": {
@@ -12,49 +12,82 @@
   "types": "dist/index.d.ts",
   "style": "dist/index.css",
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "*.less"
   ],
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup",
     "build:watch": "tsup --watch",
-    "postbuild": "node scripts/generate-exports.mjs"
+    "postbuild": "node scripts/verify-exports.mjs",
+    "dev": "vite",
+    "dev:build": "vite build",
+    "dev:preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --ext .ts,.tsx src scripts demo",
+    "lint:fix": "eslint --ext .ts,.tsx src scripts demo --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,less}\" \"demo/**/*.{ts,tsx,less}\" \"scripts/**/*.mjs\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,less}\" \"demo/**/*.{ts,tsx,less}\" \"scripts/**/*.mjs\"",
+    "prepublishOnly": "npm run typecheck && npm run build",
+    "link:rm": "npm link ../render-markdown",
+    "unlink:rm": "npm unlink remons-render-markdown && npm install --no-save",
+    "link:rm:build": "npm --prefix ../render-markdown run build"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "classnames": "^2.5.1",
     "json5": "^2.2.3",
     "markdown-it-container": "^4.0.0",
-    "methods-r": "^1.0.0",
-    "remons-calendar": "^1.0.0-beta.8"
+    "remons-calendar": "^1.0.0-beta.9",
+    "remons-render-markdown": "^2.0.1-beta.4"
   },
   "peerDependencies": {
     "@ant-design/icons": ">=5.0.0",
-    "antd": ">=5.0.0",
+    "antd": ">=5.21.6",
+    "dayjs": ">=1.11.13",
+    "markdown-it": ">=13.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
+  "peerDependenciesMeta": {
+    "markdown-it": {
+      "comments": "markdown-it 只在渲染阶段使用,部分 SSR 场景可以先不安装"
+    },
+    "antd": {
+      "optional": true,
+      "comments": "仅在使用 render-calendar 插件时需要(remons-calendar 内部依赖 antd Badge/Tag); 其他插件无 antd 依赖"
+    },
+    "dayjs": {
+      "optional": true,
+      "comments": "仅在使用 render-calendar 插件时需要(remons-calendar 内部依赖 dayjs)"
+    }
+  },
   "devDependencies": {
     "@ant-design/icons": "^5.3.0",
-    "@rollup/plugin-node-resolve": "^15.2.0",
-    "@rollup/plugin-typescript": "^12.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "antd": "^5.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "antd": "^5.21.6",
+    "dayjs": "^1.11.13",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "highlight.js": "^11.12.0",
     "less": "^4.2.0",
+    "markdown-it": "^13.0.2",
+    "prettier": "^3.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rollup": "^4.9.0",
-    "rollup-plugin-dts": "^6.1.0",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-postcss": "^4.0.2",
     "tsup": "^8.0.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0"
   },
   "license": "MIT",
   "exports": {

@@ -1,0 +1,180 @@
+:root {
+  --bg: #f6f7f9;
+  --fg: #1f1f1f;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --accent: #1677ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei',
+    'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.topbar {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  h1 {
+    font-size: 16px;
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  &.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+
+  button {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+
+    &:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+  }
+}
+
+.content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(320px, 40%) 1fr;
+  gap: 16px;
+  padding: 16px 20px;
+  min-height: 0;
+}
+
+.editor,
+.preview {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.editor-label {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.editor textarea {
+  flex: 1;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  font-family: 'Fira Code', Consolas, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 400px;
+  background: #fafbfc;
+  color: #1f1f1f;
+  outline: none;
+
+  &:focus {
+    border-color: var(--accent);
+  }
+}
+
+.preview {
+  overflow: auto;
+}
+
+.md-content {
+  padding: 4px;
+
+  > *:first-child {
+    margin-top: 0;
+  }
+
+  h1 {
+    font-size: 18px;
+    margin: 8px 0 12px;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--border);
+    padding-left: 12px;
+    color: #666;
+    margin: 8px 0;
+  }
+}
+
+.tips {
+  padding: 10px 20px;
+  font-size: 12px;
+  color: #888;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+
+  p {
+    margin: 0;
+  }
+}

@@ -1,40 +1,54 @@
 import React from "react";
 import { createFromIconfontCN } from '@ant-design/icons';
-import { img } from './index';
+import { getConfig } from '../config';
 
-const Icon = createFromIconfontCN({
-  scriptUrl: 'https://at.alicdn.com/t/c/font_5232281_g68qrbd1z2.js',
-});
+/**
+ * Icon 组件采用懒初始化:
+ * - 模块求值时不注册 scriptUrl,避免 `createFromIconfontCN` 在 configure() 之前
+ *   被绑定到默认 CDN 上
+ * - 首次渲染时读 getConfig().iconfontScriptUrl,兼容使用方在应用启动阶段
+ *   通过 configure() 覆盖 CDN 地址的场景
+ */
+let cachedIcon: React.ComponentType<{ className?: string; type: string }> | null = null;
+let cachedScriptUrl: string | null = null;
 
-export const typeToIcon = (type: string): any => {
+function getIconComp() {
+  const scriptUrl = getConfig().iconfontScriptUrl;
+  if (!cachedIcon || cachedScriptUrl !== scriptUrl) {
+    cachedIcon = createFromIconfontCN({ scriptUrl });
+    cachedScriptUrl = scriptUrl;
+  }
+  return cachedIcon;
+}
+
+interface IconProps {
+  type: string;
+  className?: string;
+}
+
+const MarkdownIcon: React.FC<IconProps> = ({ type, className }) => {
+  const Icon = getIconComp();
+  return <Icon className={className ?? 'markdown-icon'} type={type} />;
+};
+
+/**
+ * 查询当前配置下 type 对应的 iconfont 图标 id。
+ * 未登记的 type 返回空字符串,便于调用方做 `x || fallback` 之类的兜底。
+ */
+export function resolveIconType(type: string): string {
   if (!type) return '';
-  const iconMap: { [key: string]: any } = {
-    'amap': <Icon className="markdown-icon" type="icon-amap" />,
-    'redbook': <Icon className="markdown-icon" type="icon-xiaohongshu" />,
-    'price': <Icon className="markdown-icon" type="icon-price" />,
-    'time': <Icon className="markdown-icon" type="icon-time" />,
-    'address': <Icon className="markdown-icon" type="icon-address" />,
-    'ctrip': <Icon className="markdown-icon" type="icon-ctrip" />,
-    'meituan': <Icon className="markdown-icon" type="icon-meituan" />,
-    'sharecode': <Icon className="markdown-icon" type="icon-sharecode" />,
-    'distance': <Icon className="markdown-icon" type="icon-distance" />,
-    'duration': <Icon className="markdown-icon" type="icon-duration" />,
-    'routePlanning': <Icon className="markdown-icon" type="icon-routeplanning" />,
-    'reservation': <Icon className="markdown-icon" type="icon-reservation" />,
-    'parking': <Icon className="markdown-icon" type="icon-parking" />,
-    'highlightAttraction': <Icon className="markdown-icon" type="icon-highlightattraction" />,
-    'travelMethod': <Icon className="markdown-icon" type="icon-travelmethod" />,
-    'website': <Icon className="markdown-icon" type="icon-website" />,
-    'itinerary': <Icon className="markdown-icon" type="icon-itinerary" />,
-    'calendar': <Icon className="markdown-icon" type="icon-calendar" />,
-    'hotel': <Icon className="markdown-icon" type="icon-hotel" />,
-  }
+  return getConfig().icons[type] || '';
+}
 
-  const result = iconMap[type];
-
-  if (result && typeof result === 'string') {
-    return img(result, 16);
-  }
-
-  return result || '';
+/**
+ * 将 markdown config 里的 `type` 转成对应的 React 图标节点。
+ * - 空 type 或未在 `configure({ icons })` / 内置表中登记的 type 返回 `''`,
+ *   与历史调用点的 `typeToIcon(x) || fallback` 语义一致
+ * - 新增图标无需修改本库,使用方在应用入口调用
+ *   `configure({ icons: { newType: 'icon-xxx' } })` 即可生效
+ */
+export const typeToIcon = (type: string): React.ReactNode => {
+  const iconType = resolveIconType(type);
+  if (!iconType) return '';
+  return <MarkdownIcon type={iconType} />;
 };

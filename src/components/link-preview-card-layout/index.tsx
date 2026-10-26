@@ -1,9 +1,9 @@
 import React, { Fragment, useState, useMemo, useCallback } from 'react';
-import { Spin } from 'antd';
 import { RedoOutlined } from '@ant-design/icons';
-import { IsPC } from '../../utils/platform';
+import { isPC } from '../../utils/platform';
 import { useOgp } from './useOgp';
 import LinkButton from '../link-button';
+import Spinner from '../spinner';
 import { typeToIcon } from '../../utils/type-to-icon';
 import './index.less';
 
@@ -36,18 +36,18 @@ const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url,
 
 
   const displayInfo = useMemo(() => {
-    const displayTitle = ogpData?.title || `链接 ${new URL(finalUrl).hostname}`;
+    // 容错解析 hostname:finalUrl 为相对路径/无效 URL 时不抛
+    let hostname = '';
+    try {
+      hostname = new URL(finalUrl).hostname;
+    } catch {
+      hostname = '';
+    }
+    const displayTitle = ogpData?.title || (hostname ? `链接 ${hostname}` : '链接');
     const displayDesc = ogpData?.description || description || finalUrl;
     const displayImage = ogpData?.image || '';
     const displayFavicon = ogpData?.favicon || '';
-    let displaySiteName = ogpData?.siteName || '';
-    try {
-      if (!displaySiteName) {
-        displaySiteName = new URL(finalUrl).hostname;
-      }
-    } catch (e) {
-      // ignore
-    }
+    let displaySiteName = ogpData?.siteName || hostname;
     return { displayTitle, displayDesc, displayImage, displayFavicon, displaySiteName };
   }, [ogpData, finalUrl, description]);
 
@@ -95,7 +95,7 @@ const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url,
     return (
       <div className="link-preview-card-container">
         <div className="link-preview-loading">
-          <Spin size="small" />
+          <Spinner size="small" />
           <span>加载预览中...</span>
         </div>
       </div>
@@ -105,10 +105,10 @@ const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url,
   return (
     <div className="link-preview-card-container">
       <div className="link-preview-card">
-        <div className="refresh-btn cricle" onClick={onReload}><RedoOutlined /></div>
+        <div className="refresh-btn" onClick={onReload}><RedoOutlined /></div>
         {imageComponent}
         {
-          IsPC() ? rightComponent : <div className="link-preview-right">
+          isPC() ? rightComponent : <div className="link-preview-right">
             {rightComponent}
           </div>
         }

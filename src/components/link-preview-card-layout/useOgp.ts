@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { hasProtocolFun, HOST } from '../../utils';
+import { hasProtocolFun } from '../../utils';
+import { getConfig } from '../../config';
 
 export interface OgpData {
   title: string;
@@ -15,18 +16,26 @@ export interface OgpData {
 interface UseOgpResult {
   ogpData: OgpData | null;
   loading: boolean;
-  error: boolean;
   imageError: boolean;
   setImageError: (v: boolean) => void;
   finalUrl: string;
-  hasProtocol: boolean;
   refetch: () => void;
 }
 
-// Global cache for OGP data to avoid duplicate requests
+// 缓存上限,避免 SPA 长时间运行导致内存无界增长
+const OGP_CACHE_LIMIT = 200;
+
+// Map 保持插入顺序,达到上限时按最旧写入淘汰
 const ogpCache = new Map<string, OgpData>();
-// Track in-flight requests to avoid duplicate fetches
 const requestCache = new Map<string, Promise<OgpData | null>>();
+
+function setCacheWithLimit(key: string, value: OgpData) {
+  if (ogpCache.size >= OGP_CACHE_LIMIT) {
+    const oldest = ogpCache.keys().next().value;
+    if (oldest !== undefined) ogpCache.delete(oldest);
+  }
+  ogpCache.set(key, value);
+}
 
 function fetchOgp(finalUrl: string, fetchOgpUrl: string, noCache?: boolean): Promise<OgpData | null> {
   if (!noCache && ogpCache.has(finalUrl)) {
@@ -36,12 +45,13 @@ function fetchOgp(finalUrl: string, fetchOgpUrl: string, noCache?: boolean): Pro
     return requestCache.get(finalUrl)!;
   }
 
+  const host = getConfig().ogpHost;
   const cacheParam = noCache ? '&noCache=true' : '';
-  const promise = fetch(`${HOST}/ogp/fetch?url=${encodeURIComponent(fetchOgpUrl)}${cacheParam}`)
+  const promise = fetch(`${host}/ogp/fetch?url=${encodeURIComponent(fetchOgpUrl)}${cacheParam}`)
     .then(res => res.json())
     .then(res => {
       if (res.success && res.data) {
-        ogpCache.set(finalUrl, res.data);
+        setCacheWithLimit(finalUrl, res.data);
         return res.data;
       }
       return null;
@@ -55,50 +65,45 @@ function fetchOgp(finalUrl: string, fetchOgpUrl: string, noCache?: boolean): Pro
   return promise;
 }
 
-/** 是否运行在 HTML5+ App 环境（模拟器 / 真机 / file:// 协议） */
-export const isWebsite = () =>
-  ['remons.cn', 'lucky.work'].includes(window.location.hostname);
+/** 是否运行在受信任站点(白名单通过 configure({ trustedHostnames }) 覆盖) */
+export const isWebsite = () => {
+  if (typeof window === 'undefined') return false;
+  return getConfig().trustedHostnames.includes(window.location.hostname);
+};
+
+const safeOrigin = () => (typeof window === 'undefined' ? '' : window.location.origin);
 
 export function useOgp(url: string): UseOgpResult {
   const [ogpData, setOgpData] = useState<OgpData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [imageError, setImageError] = useState(false);
   const mountedRef = useRef(true);
 
   const trimmed = url?.trim();
   const hasProtocol = hasProtocolFun(trimmed);
+  const origin = safeOrigin();
   const finalUrl = hasProtocol
     ? trimmed
-    : `${window.location.origin}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
+    : `${origin}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
 
-  let fetchOgpUrl = ''
+  let fetchOgpUrl = '';
   if (hasProtocol) {
     fetchOgpUrl = finalUrl;
-  }
-
-  if (!hasProtocol) {
-    if (isWebsite()) {
-      fetchOgpUrl = `${window.location.origin}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
-    } else {
-      fetchOgpUrl = `https://remons.cn${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
-    }
+  } else if (isWebsite()) {
+    fetchOgpUrl = `${origin}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
+  } else {
+    fetchOgpUrl = `${getConfig().defaultRemoteHost}${trimmed?.startsWith('/') ? '' : '/'}${trimmed}`;
   }
 
   const refetch = useCallback(() => {
     if (!trimmed) return;
-    // 刷新：清除本地缓存，并向后端携带 noCache=true 不使用缓存
+    // 刷新:清除本地缓存,并向后端携带 noCache=true 不使用缓存
     ogpCache.delete(finalUrl);
-    setError(false);
     setImageError(false);
     setLoading(true);
     fetchOgp(finalUrl, fetchOgpUrl, true).then(data => {
       if (mountedRef.current) {
-        if (data) {
-          setOgpData(data);
-        } else {
-          setError(true);
-        }
+        if (data) setOgpData(data);
         setLoading(false);
       }
     });
@@ -108,12 +113,10 @@ export function useOgp(url: string): UseOgpResult {
     mountedRef.current = true;
     if (!trimmed) {
       setLoading(false);
-      setError(true);
       return;
     }
     setImageError(false);
 
-    // Check cache first
     if (ogpCache.has(finalUrl)) {
       setOgpData(ogpCache.get(finalUrl) || null);
       setLoading(false);
@@ -123,11 +126,7 @@ export function useOgp(url: string): UseOgpResult {
     setLoading(true);
     fetchOgp(finalUrl, fetchOgpUrl).then(data => {
       if (mountedRef.current) {
-        if (data) {
-          setOgpData(data);
-        } else {
-          setError(true);
-        }
+        if (data) setOgpData(data);
         setLoading(false);
       }
     });
@@ -135,7 +134,8 @@ export function useOgp(url: string): UseOgpResult {
     return () => {
       mountedRef.current = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalUrl]);
 
-  return { ogpData, loading, error, imageError, setImageError, finalUrl, hasProtocol, refetch };
+  return { ogpData, loading, imageError, setImageError, finalUrl, refetch };
 }

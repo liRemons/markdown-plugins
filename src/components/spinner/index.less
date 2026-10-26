@@ -1,0 +1,22 @@
+.md-plugin-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--markdown-plugin-color-border, #e4e4e4);
+  border-top-color: var(--markdown-plugin-color-primary, #1677ff);
+  border-radius: 50%;
+  animation: md-plugin-spin 0.9s linear infinite;
+  vertical-align: middle;
+}
+
+.md-plugin-spinner-small {
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+}
+
+@keyframes md-plugin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

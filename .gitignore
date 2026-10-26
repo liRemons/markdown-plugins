@@ -87,6 +87,11 @@ out
 dist
 dist/
 
+# Vite / demo
+dist-demo/
+.vite/
+*.local
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

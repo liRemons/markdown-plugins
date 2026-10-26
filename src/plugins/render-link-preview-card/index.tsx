@@ -2,7 +2,7 @@ import React from 'react';
 import { createContainerComponent } from '../../utils/parse-container-config';
 import LinkPreviewCardLayout from '../../components/link-preview-card-layout';
 
-const LinkPreviewCardInner: React.FC<{ content: string }> = ({ content }) => {
+const LinkPreviewCardInner: React.FC<{ content?: string }> = ({ content = '' }) => {
   return <LinkPreviewCardLayout url={content} />;
 };
 

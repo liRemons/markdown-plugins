@@ -5,17 +5,31 @@ import './index.less'
 
 const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
 
-const BadgeContainerInner: React.FC<{ type: string; content: string; block: string; url?: string; }> = ({ type, content, block, url }) => {
+interface BadgeProps {
+  type?: string;
+  content?: string;
+  block?: string;
+  url?: string;
+}
+
+const BadgeContainerInner: React.FC<BadgeProps> = ({ type, content, block, url }) => {
   const handleClick = useCallback(() => {
     if (url) {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener');
     }
   }, [url]);
 
+  const clickable = Boolean(url);
 
   return (
-    <div className={cn('badge-container', block === 'true' ? 'block' : '')} onClick={handleClick}>
-      {typeToIcon(type)}
+    <div
+      className={cn('badge-container', block === 'true' ? 'block' : '')}
+      onClick={clickable ? handleClick : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } } : undefined}
+    >
+      {typeToIcon(type || '')}
       <span>{content}</span>
     </div>
   );
