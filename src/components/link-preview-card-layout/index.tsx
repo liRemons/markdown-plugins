@@ -14,9 +14,10 @@ interface LinkPreviewCardLayoutProps {
   description?: string;
   favicon?: string | React.ReactNode;
   actions?: React.ReactNode;
+  title?: string;
 }
 
-const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url, description, favicon, actions }) => {
+const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url, description, favicon, actions, title }) => {
   const { ogpData, loading, finalUrl, imageError, setImageError, refetch } = useOgp(url);
   const [faviconError, setFaviconError] = useState(false);
 
@@ -43,7 +44,7 @@ const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url,
     } catch {
       hostname = '';
     }
-    const displayTitle = ogpData?.title || (hostname ? `链接 ${hostname}` : '链接');
+    const displayTitle = !url ? title : (ogpData?.title || (hostname ? `链接 ${hostname}` : '链接'));
     const displayDesc = ogpData?.description || description || finalUrl;
     const displayImage = ogpData?.image || '';
     const displayFavicon = ogpData?.favicon || '';
@@ -69,7 +70,7 @@ const LinkPreviewCardLayoutInner: React.FC<LinkPreviewCardLayoutProps> = ({ url,
           <span className="link-preview-title-text">{displayInfo.displayTitle}</span>
         </div>
         {displayInfo.displayDesc && <div className="link-preview-desc">{displayInfo.displayDesc}</div>}
-        <div className="link-preview-site">{displayInfo.displaySiteName}</div>
+        <div className="link-preview-site">{url ? displayInfo.displaySiteName : ''}</div>
       </div>
       <div className="link-preview-actions">
         {

@@ -9,27 +9,23 @@ const ShareCodeContainerInner: React.FC<{ content?: string; type?: string }> = (
   const icon = typeToIcon(type || '') || typeToIcon('sharecode');
 
   const actionsWithUrl = useMemo(() => {
-    if (!url) return null;
     return (
       <Fragment>
         <LinkButton componentType="div" copyContent={content}>
           {typeToIcon('sharecode')}复制口令
         </LinkButton>
-        <LinkButton href={url} componentType="a" copyContent={content} />
+        {url ? <LinkButton href={url} componentType="a" copyContent={content} /> : null}
       </Fragment>
     );
   }, [url, content]);
 
-  if (url) {
-    return <LinkPreviewCardLayout
-      url={url}
-      description={content}
-      favicon={icon}
-      actions={actionsWithUrl}
-    />;
-  }
-
-  return null;
+  return <LinkPreviewCardLayout
+    url={url}
+    title="口令"
+    description={content}
+    favicon={icon}
+    actions={actionsWithUrl}
+  />;
 };
 
 const ShareCodeContainer = React.memo(ShareCodeContainerInner);
