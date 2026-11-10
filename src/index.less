@@ -8,3 +8,68 @@
     flex-shrink: 0;
     width: 20px;
 }
+
+/* plugin-container 自定义容器（编辑器 wrapTags 直出 HTML，非插件挂载产物）：
+   卡片化外观 + collapsed 收起态（.circle 折叠按钮由使用方 JS 注入，如 website_pages）。
+   主题变量由宿主页面提供，这里给出亮色兜底值 */
+plugin-container {
+    margin-bottom: 14px;
+    display: block;
+    box-shadow: var(--shadow-md, 0 2px 8px rgba(0, 0, 0, 0.15)) !important;
+    border: 1px solid var(--color-border, #e5e6eb);
+    padding: 10px;
+    padding-top: 0;
+    border-radius: var(--radius-base, 8px);
+    background-color: var(--color-bg-card, #fff);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+
+    &.collapsed {
+        height: 24px;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(transparent, var(--color-bg-white, #fff));
+            pointer-events: none;
+        }
+    }
+
+    .circle {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        z-index: 10;
+        transition: transform 0.3s ease-in-out;
+        height: 28px;
+        width: 28px;
+        line-height: 28px;
+        font-size: 12px;
+    }
+
+    &.collapsed .circle {
+        transform: rotate(-90deg);
+        /* 收起时朝右 */
+    }
+}
+
+@media screen and (max-width: 500px) {
+    plugin-container {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+/* center-container 居中容器（编辑器 wrapTags 直出 HTML）：
+   默认块级水平居中，无需内联 style 即生效；用户内联 style 可按条追加/覆盖。
+   刻意不带卡片外观（那是 plugin-container 的职责），仅负责居中。 */
+center-container {
+    display: block;
+    text-align: center;
+}
